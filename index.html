@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>GeoJSON tutorial - Leaflet</title>
+
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+          integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+            integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+            crossorigin=""></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+    <script src="data/inspektion.js"></script>
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        #map {
+            width: 90%;
+            height: 90%;
+        }
+    </style>
+
+
+</head>
+<body>
+
+<h1 style="margin: auto; text-align: center">Landkreis Freising: Inspektion-Karte</h1>
+<div id='map' style="margin: auto; text-align: center;"></div>
+
+<script>
+    const map = L.map('map').setView([48.3924, 11.7569], 13);
+
+    L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}{r}.png', {
+        attribution: '<a href="https://wikimediafoundation.org/wiki/Maps_Terms_of_Use">Wikimedia</a>',
+        minZoom: 1,
+        maxZoom: 19
+    }).addTo(map);
+
+    // L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
+    //     maxZoom: 19,
+    //     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    // }).addTo(map);
+
+    // Define a style
+    const defaultStyle = {
+        "color": "#ff7800",
+        "weight": 1,
+        "opacity": 0.6
+    };
+
+    const hoverStyle = {
+        "color": "#ff3000",
+        "weight": 3,
+        "opacity": 0.8
+    };
+
+    function onEachFeature(feature, layer) {
+        layer.on('mouseover', function () {
+            this.setStyle(hoverStyle);
+        });
+        layer.on('mouseout', function () {
+            this.setStyle(defaultStyle);
+        });
+
+        // add feature to kbm
+        let featureKbm = kbms.find(kbm => kbm.abschnitt === feature.properties.ABSCHNITT);
+        let featureKbi = null;
+        if(featureKbm) {
+            featureKbi = kbis.find(kbi => kbi.abschnitt === featureKbm.abschnitt.charAt(0));
+        }
+
+        if(feature.properties.ABSCHNITT === "6") { // FS
+            featureKbm = null;
+            featureKbi = kbis.find(kbi => kbi.abschnitt === feature.properties.ABSCHNITT);
+            console.log(featureKbi)
+        }
+
+        if (featureKbm && featureKbi) {
+            let text = `<b>${feature.properties.GEN}</b><br />
+Abschnitt ${featureKbm.abschnitt}<br>
+<b>KBM: </b>${featureKbm.name}<br />
+<b>KBI: </b>${featureKbi.name}`;
+            layer.bindPopup(text);
+        } else if(featureKbi) {
+            let text = `<b>Abschnitt Freising</b><br />
+<b>SBI: </b>${featureKbi.name}`;
+            layer.bindPopup(text);
+        }
+    }
+
+    const geojson = new L.GeoJSON.AJAX("data/gemeinden_simplify20.geojson", {
+        style: defaultStyle,
+        onEachFeature: onEachFeature
+    });
+    geojson.on('data:loaded', function(){
+        geojson.addTo(map);
+        map.fitBounds(geojson.getBounds());
+    });
+
+</script>
+
+
+</body>
+</html>
