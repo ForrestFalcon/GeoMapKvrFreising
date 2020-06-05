@@ -76,23 +76,25 @@
         let featureKbi = null;
         if(featureKbm) {
             featureKbi = kbis.find(kbi => kbi.abschnitt === featureKbm.abschnitt.charAt(0));
+            featureKbm.link = `/kbm-${featureKbm.abschnitt.replace("/", "-")}`
+            featureKbi.link = `/kbi-${featureKbi.abschnitt}`
         }
 
-        if(feature.properties.ABSCHNITT === "6") { // FS
+        if(feature.properties.ABSCHNITT === "6") { // FS SBI
             featureKbm = null;
             featureKbi = kbis.find(kbi => kbi.abschnitt === feature.properties.ABSCHNITT);
-            console.log(featureKbi)
+            featureKbi.link = `/sbi-${featureKbi.abschnitt}`
         }
 
         if (featureKbm && featureKbi) {
             let text = `<b>${feature.properties.GEN}</b><br />
 Abschnitt ${featureKbm.abschnitt}<br>
-<b>KBM: </b>${featureKbm.name}<br />
-<b>KBI: </b>${featureKbi.name}`;
+<b>KBM: </b><a class="inspektion" href="${featureKbm.link}">${featureKbm.name}</a><br />
+<b>KBI: </b><a class="inspektion" href="${featureKbi.link}">${featureKbi.name}</a>`;
             layer.bindPopup(text);
         } else if(featureKbi) {
             let text = `<b>Abschnitt Freising</b><br />
-<b>SBI: </b>${featureKbi.name}`;
+<b>SBI: </b><a class="inspektion" href="${featureKbi.link}">${featureKbi.name}</a>`;
             layer.bindPopup(text);
         }
     }
